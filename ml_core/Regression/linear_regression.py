@@ -1,44 +1,43 @@
+from abc import ABC, abstractmethod
 import numpy as np
-from tqdm.notebook import trange
-
-from ml_core.ErrorMetrics import rmse
 
 
-def gradient_descent(X: np.ndarray, y: np.ndarray, alpha=0.01, ephocs=100, initial_w_values=1, with_history_predictions=False):
+class LinearModel:
 
-    X_ = np.column_stack([
-        np.ones(X.shape[0]),
-        X
-    ])
+    w: np.ndarray
 
-    w = np.full(
-        shape=X_.shape[1],
-        fill_value=initial_w_values
-    ).reshape([-1, 1])
+    def __init__(self, w: np.ndarray):
+        self.w = w.copy()
 
-    if with_history_predictions:
-        history = []
+    @staticmethod
+    def first_model(lenght: int, fill_value: float) -> 'LinearModel':
+        w = np.full(shape=lenght,fill_value=fill_value).reshape([-1, 1])
+        return LinearModel(w)
 
-    pbar = trange(ephocs)
-    for _ in pbar:
+    def predict(self, x: np.ndarray) -> np.ndarray:
+        return x @ self.w
 
-        predicted = X_ @ w
+    def update(self, w: np.ndarray):
+        self.w = w.copy()
 
-        error = y - predicted
-
-        w = w + (alpha / X.shape[0]) * (X_.T @ error)
-
-        pbar.set_description(f"RMSE: {rmse(y, predicted)} \n")
-
-        if with_history_predictions:
-            history.append(predicted)
-
-    if with_history_predictions:
-        return w, history
-
-    return w
+    def __copy__(self):
+        return LinearModel(self.w)
 
 
-def ordinary_least_squares(X: np.ndarray, y: np.ndarray) -> np.ndarray:
+class LinearAlgoritm(ABC):
 
-    return np.linalg.inv(X.T @ X) @ X.T @ y
+    with_regulazation: bool
+    initial_w_values: float
+    ephocs: int
+    alpha: float
+    with_history_predictions: bool
+
+    def __init__(self, alpha=0.01, ephocs=100, initial_w_values=1, with_regulazation=False, with_history_predictions=False):
+        self.with_history_predictions = with_history_predictions
+        self.with_regulazation = with_regulazation
+        self.initial_w_values = initial_w_values
+        self.ephocs = ephocs
+        self.alpha = alpha
+
+    @abstractmethod
+    def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> LinearModel: pass
