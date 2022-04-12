@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Any
+
 import numpy as np
 
 
@@ -7,7 +9,7 @@ class LinearModel:
     w: np.ndarray
 
     def __init__(self, w: np.ndarray):
-        self.w = w.copy()
+        self.w = w.reshape([-1, 1])
 
     @staticmethod
     def first_model(lenght: int, fill_value: float) -> 'LinearModel':
@@ -18,10 +20,10 @@ class LinearModel:
         return x @ self.w
 
     def update(self, w: np.ndarray):
-        self.w = w.copy()
+        self.w = w.reshape([-1, 1])
 
     def __copy__(self):
-        return LinearModel(self.w)
+        return LinearModel(self.w.reshape([-1, 1]))
 
 
 class LinearAlgoritm(ABC):
@@ -40,4 +42,4 @@ class LinearAlgoritm(ABC):
         self.alpha = alpha
 
     @abstractmethod
-    def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> LinearModel: pass
+    def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> LinearModel | list[dict[str, Any]]: pass
