@@ -32,7 +32,7 @@ class GradientDescent(LinearAlgoritm):
 
 			denormalized_predicted = desnormalize_function(normalized_predicted)
 
-			error = ErrorMetrics.rmse(y, denormalized_predicted)
+			error = ErrorMetrics.rmse(desnormalize_function(y), denormalized_predicted)
 
 			pbar.set_description(f"RMSE: {error} \n")
 
@@ -56,9 +56,9 @@ class GradientDescent(LinearAlgoritm):
 
 			normalized_predicted = model.predict(x)
 
-			#denormalized_predicted = desnormalize_function(normalized_predicted)
+			denormalized_predicted = desnormalize_function(normalized_predicted)
 
-			error = ErrorMetrics.rmse(y, normalized_predicted)
+			error = ErrorMetrics.rmse(desnormalize_function(y), denormalized_predicted)
 
 			history.append({
 				'ephoc': ephoc,
