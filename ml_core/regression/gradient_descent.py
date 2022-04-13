@@ -15,7 +15,7 @@ class GradientDescent(LinearAlgoritm):
 
         error = y - predicted
 
-        w = model.w + (self.alpha / x.shape[0]) * (x.T @ error)
+        w = model.w + self.alpha * ( (1 / x.shape[0]) * (x.T @ error) - self.l2_regulazation*model.w)
 
         model.update(w)
 

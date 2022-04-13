@@ -6,5 +6,9 @@ from ml_core.regression._linear_regression import LinearAlgoritm, LinearModel
 class OrdinaryLeastSquares(LinearAlgoritm):
 
 	def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> LinearModel:
-		w = np.linalg.inv(x.T @ x) @ x.T @ y
+
+		l2_reg_matrix = np.eye(x.shape[1]) * self.l2_regulazation
+
+		w = np.linalg.inv( (x.T @ x) + l2_reg_matrix ) @ x.T @ y
+
 		return LinearModel(w)

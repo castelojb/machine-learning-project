@@ -15,7 +15,7 @@ class StochasticGradientDescent(LinearAlgoritm):
 
 		error = (y - predicted)
 
-		w = model.w + (self.alpha * error * x.T)
+		w = model.w + (self.alpha * (error * x.T - (self.l2_regulazation * model.w) ))
 
 		model.update(w)
 

@@ -32,18 +32,18 @@ class LinearModel:
 
 class LinearAlgoritm(ABC):
 
-    with_regulazation: bool
     initial_w_values: float
     ephocs: int
     alpha: float
     with_history_predictions: bool
     seed: int
+    l2_regulazation: float
 
-    def __init__(self, alpha=0.01, ephocs=100, initial_w_values=1, with_regulazation=False, with_history_predictions=False, seed=1234):
+    def __init__(self, alpha=0.01, ephocs=100, initial_w_values=1, l2_regulazation=0, with_history_predictions=False, seed=1234):
 
+        self.l2_regulazation = l2_regulazation
         self.seed = seed
         self.with_history_predictions = with_history_predictions
-        self.with_regulazation = with_regulazation
         self.initial_w_values = initial_w_values
         self.ephocs = ephocs
         self.alpha = alpha
