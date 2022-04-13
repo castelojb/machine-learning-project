@@ -4,7 +4,7 @@ import numpy as np
 from tqdm.notebook import trange
 
 from ml_core.metrics import ErrorMetrics
-from ml_core.regression.linear_regression import LinearAlgoritm, LinearModel
+from ml_core.regression._linear_regression import LinearAlgoritm, LinearModel
 
 
 class GradientDescent(LinearAlgoritm):
@@ -26,6 +26,7 @@ class GradientDescent(LinearAlgoritm):
         pbar = trange(self.ephocs)
 
         for ephoc in pbar:
+
             model = self.__step_training(x, y, model)
 
             predicted = model.predict(x)
@@ -47,12 +48,11 @@ class GradientDescent(LinearAlgoritm):
             fill_value=self.initial_w_values
         )
 
-        if self.with_history_predictions:
-            history = list(self.__training_loop(x, y, first_model))
+        history = list(self.__training_loop(x, y, first_model))
 
+        if self.with_history_predictions:
             return history
 
-        else:
-            final_model = list(self.__training_loop(x, y, first_model))[-1]['model']
+        final_model = history[-1]['model']
 
-            return final_model
+        return final_model

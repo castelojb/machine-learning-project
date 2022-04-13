@@ -1,2 +1,4 @@
 from ml_core.regression.gradient_descent import GradientDescent
 from ml_core.regression.ordinary_least_squares import OrdinaryLeastSquares
+from ml_core.regression.stochastic_gradient_descent import StochasticGradientDescent
+

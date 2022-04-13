@@ -25,6 +25,10 @@ class LinearModel:
     def __copy__(self):
         return LinearModel(self.w.reshape([-1, 1]))
 
+    def __str__(self):
+
+        return self.w.__str__()
+
 
 class LinearAlgoritm(ABC):
 
@@ -33,8 +37,11 @@ class LinearAlgoritm(ABC):
     ephocs: int
     alpha: float
     with_history_predictions: bool
+    seed: int
 
-    def __init__(self, alpha=0.01, ephocs=100, initial_w_values=1, with_regulazation=False, with_history_predictions=False):
+    def __init__(self, alpha=0.01, ephocs=100, initial_w_values=1, with_regulazation=False, with_history_predictions=False, seed=1234):
+
+        self.seed = seed
         self.with_history_predictions = with_history_predictions
         self.with_regulazation = with_regulazation
         self.initial_w_values = initial_w_values
