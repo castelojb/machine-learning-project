@@ -70,8 +70,8 @@ class RegressionPage:
 		st.markdown(self.gd_text)
 
 		gd = GradientDescent(ephocs=500, with_history_predictions=True, l2_regulazation=0.001)
-
 		history_gd = gd.fit(X_ones, y)
+
 		_, plot_rmse_gd, plot_result_gd, _ = st.columns([0.1, 0.4, 0.4, 0.1])
 
 		with plot_rmse_gd:
