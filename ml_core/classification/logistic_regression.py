@@ -1,9 +1,11 @@
+from copy import copy
 from typing import Callable
 
 import numpy as np
 
 from ml_core.classification.logistic_functions import sigmoid
-from ml_core.regression.linear_regression import LinearModel
+from ml_core.regression.linear_regression import LinearModel, LinearAlgoritm
+from ml_core._abstract_models import MlAlgoritm, MlModel
 
 
 class LogisticBinaryModel(LinearModel):
@@ -33,3 +35,63 @@ class LogisticBinaryModel(LinearModel):
 			self.w.reshape([-1, 1]),
 			self.logistic_function
 		)
+
+class LogisticMulticlassModel(MlModel):
+	
+	def __init__(self, binary_models: list[LogisticBinaryModel]):
+		self.binary_models = binary_models
+
+	def first_model(self, lenght: int, fill_value: float, n_classes: int, **kwargs) -> 'LogisticMulticlassModel':
+
+		return LogisticMulticlassModel(
+			[
+				LogisticBinaryModel.first_model(lenght, fill_value) for _ in range(n_classes)
+			]
+		)
+
+	def predict(self, x: np.ndarray) -> np.ndarray:
+
+		preds = np.fromiter(map(lambda model: model.predict(x), self.binary_models), dtype=np.ndarray)
+
+		return preds.argmax(axis=1)
+
+
+	def update(self, binary_models: list[LogisticBinaryModel], **kwargs):
+
+		self.binary_models = copy(binary_models)
+
+
+	def is_close(self, model: 'LogisticMulticlassModel', **kwargs) -> bool:
+
+		return all([
+			model1.is_close(model2) for model1, model2 in zip(self.binary_models, model.binary_models)
+		])
+
+	def __copy__(self):
+		return LogisticMulticlassModel(self.binary_models)
+
+	def __str__(self):
+		pass
+
+
+class LinearRegressionMulticlass(MlAlgoritm):
+
+	def __init__(self, linear_alg: LinearAlgoritm, initial_w_values: float=1):
+		self.initial_w_values = initial_w_values
+		self.linear_alg = linear_alg
+
+	def fit(self, x: np.ndarray, y: np.ndarray, first_model: LogisticBinaryModel = None, **kwargs) -> MlModel | list[MlModel]:
+
+		if not first_model:
+			first_model = LogisticBinaryModel.first_model(
+				lenght=x.shape[1],
+				fill_value=self.initial_w_values
+			)
+
+		binary_models = [
+			self.linear_alg.fit(x, y_class, first_model=first_model.__copy__()) for y_class in y.reshape([1, -1])
+		]
+
+		return LogisticMulticlassModel(binary_models)
+		
+
