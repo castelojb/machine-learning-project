@@ -1,0 +1,1 @@
+from ml_core.classification.logistic_regression import LogisticBinaryModel

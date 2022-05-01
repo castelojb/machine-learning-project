@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm.notebook import trange
 
-from ml_core.regression._linear_regression import LinearAlgoritm, LinearModel
+from ml_core.regression.linear_regression import LinearAlgoritm, LinearModel
 
 
 class StochasticGradientDescent(LinearAlgoritm):
