@@ -1,3 +1,5 @@
+from typing import Dict
+
 import numpy as np
 
 
@@ -20,3 +22,28 @@ def generate_polynomial_order(x: np.ndarray, order: int, with_bias=False) -> np.
     ]
 
     return np.column_stack([x, *pow_arrays])
+
+def categorize_data(y: np.ndarray) -> tuple[Dict[str, int], np.ndarray]:
+
+    unique_values = np.unique(y)
+
+    convert_values = {
+        value: index for index, value in enumerate(unique_values)
+    }
+
+    y_ = np.empty([y.shape[0]], dtype=float)
+
+    for i, v in enumerate(y):
+
+        y_[i] = convert_values[v]
+
+    return convert_values, y_
+
+def get_dummies(y: np.ndarray) -> np.ndarray:
+
+    unique_values = np.unique(y)
+
+    return np.array([
+        (y == value) for value in unique_values
+    ], dtype=float)
+

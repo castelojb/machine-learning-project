@@ -2,6 +2,7 @@ from copy import copy
 from typing import Callable
 
 import numpy as np
+from tqdm.notebook import tqdm
 
 from ml_core.classification.logistic_functions import sigmoid
 from ml_core.regression.linear_regression import LinearModel, LinearAlgoritm
@@ -15,9 +16,9 @@ class LogisticBinaryModel(LinearModel):
 		self.logistic_function = logistic_function
 
 	@staticmethod
-	def first_model(lenght: int, fill_value: float) -> 'LogisticBinaryModel':
+	def first_model(lenght: int, fill_value: float, logistic_function: Callable[[np.ndarray], np.ndarray]=sigmoid) -> 'LogisticBinaryModel':
 		w = np.full(shape=lenght, fill_value=fill_value).reshape([-1, 1])
-		return LogisticBinaryModel(w, sigmoid)
+		return LogisticBinaryModel(w, logistic_function)
 
 	@staticmethod
 	def __ajust_binary_output(x: np.ndarray) -> np.ndarray:
@@ -51,9 +52,11 @@ class LogisticMulticlassModel(MlModel):
 
 	def predict(self, x: np.ndarray) -> np.ndarray:
 
-		preds = np.fromiter(map(lambda model: model.predict(x), self.binary_models), dtype=np.ndarray)
+		preds = np.array([
+			model.predict(x) for model in self.binary_models
+		])
 
-		return preds.argmax(axis=1)
+		return preds.argmax(axis=0).reshape([-1,1])
 
 
 	def update(self, binary_models: list[LogisticBinaryModel], **kwargs):
@@ -71,7 +74,10 @@ class LogisticMulticlassModel(MlModel):
 		return LogisticMulticlassModel(self.binary_models)
 
 	def __str__(self):
-		pass
+
+		return '\n'.join([
+			model.__str__() for model in self.binary_models
+		])
 
 
 class LinearRegressionMulticlass(MlAlgoritm):
@@ -88,8 +94,9 @@ class LinearRegressionMulticlass(MlAlgoritm):
 				fill_value=self.initial_w_values
 			)
 
+
 		binary_models = [
-			self.linear_alg.fit(x, y_class, first_model=first_model.__copy__()) for y_class in y.reshape([1, -1])
+			self.linear_alg.fit(x, y_class.reshape([-1, 1]), first_model=first_model.__copy__()) for y_class in tqdm(y)
 		]
 
 		return LogisticMulticlassModel(binary_models)

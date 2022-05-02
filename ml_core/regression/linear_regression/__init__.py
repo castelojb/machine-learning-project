@@ -78,26 +78,7 @@ class LinearAlgoritm(MlAlgoritm):
 			)
 
 		model_generator = self._training_loop(x, y, first_model)
+		history = list(model_generator)
 
-		previos_model = first_model.__copy__()
-		final_model = first_model.__copy__()
 
-		history = []
-
-		for model in model_generator:
-
-			if model.is_close(previos_model, atol=self.atol):
-				final_model = model
-				break
-
-			if self.with_history_predictions:
-				history.append(
-					model.__copy__()
-				)
-
-			previos_model = model.__copy__()
-
-		if self.with_history_predictions:
-			return history
-
-		return final_model
+		return history if self.with_history_predictions else history[-1]

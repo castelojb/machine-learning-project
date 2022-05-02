@@ -1,1 +1,2 @@
-from ml_core.classification.logistic_regression import LogisticBinaryModel
+from ml_core.classification.logistic_regression import LogisticBinaryModel, LinearRegressionMulticlass
+
