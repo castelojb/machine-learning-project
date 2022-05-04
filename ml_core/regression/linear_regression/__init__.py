@@ -78,7 +78,15 @@ class LinearAlgoritm(MlAlgoritm):
 			)
 
 		model_generator = self._training_loop(x, y, first_model)
+
+		if not self.with_history_predictions:
+
+			final_model = first_model.__copy__()
+
+			for model in model_generator: final_model = model
+
+			return final_model
+
 		history = list(model_generator)
 
-
-		return history if self.with_history_predictions else history[-1]
+		return history
