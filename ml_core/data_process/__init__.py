@@ -45,5 +45,5 @@ def get_dummies(y: np.ndarray) -> np.ndarray:
 
     return np.array([
         (y == value) for value in unique_values
-    ], dtype=float)
+    ], dtype=int)
 
