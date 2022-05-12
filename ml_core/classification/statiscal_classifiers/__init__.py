@@ -9,7 +9,7 @@ class StatisticalModel(MlModel):
 
 	name: str
 
-	def __init__(self, covs: np.ndarray, means: np.ndarray, probs: np.ndarray, std: np.ndarray, noise=10**-8):
+	def __init__(self, covs: np.ndarray, means: np.ndarray, probs: np.ndarray, std: np.ndarray, noise=10**-5):
 		self.std = std
 		self.probs = probs
 		self.means = means
@@ -48,7 +48,7 @@ class StatisticalModel(MlModel):
 
 		means_str = f'-------------Means Matrix-------------\n{self.means.__str__()}'
 
-		probs_str = f'-------------Probs Matrix-------------\n{self.probs.__str__()}'
+		probs_str = f'-------------Probs Class-------------\n{self.probs.__str__()}'
 
 		return '\n'.join([
 			header,
@@ -58,18 +58,11 @@ class StatisticalModel(MlModel):
 		])
 
 	def __preprocess_data(self, noise):
+		self.cov_inv = np.linalg.pinv(self.covs)
+		self.cov_det = np.linalg.det(self.covs)
 
-		if np.linalg.det(self.covs) != 0:
-			self.cov_inv = np.linalg.inv(self.covs)
-			self.cov_det = np.linalg.det(self.covs)
-		else:
-			covs_ = self.covs.copy()
+		if np.linalg.det(self.covs) == 0: self.cov_det += noise
 
-			noise_m = np.eye(covs_.shape[0]) * noise
-			covs_ = covs_ + noise_m
-
-			self.cov_inv = np.linalg.inv(covs_)
-			self.cov_det = np.linalg.det(covs_)
 
 class MulticlassStatisticalModel(MlModel):
 
@@ -84,7 +77,7 @@ class MulticlassStatisticalModel(MlModel):
 		preds = np.array([
 			model.predict(x) for model in self.statiscal_models
 		])
-
+		return preds
 		return preds.argmax(axis=0).reshape([-1, 1])
 
 	def update(self, **kwargs):

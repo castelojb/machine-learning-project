@@ -9,7 +9,17 @@ class NaiveBayesGaussian(StatisticalModel):
 
 	def predict_row(self, rown: np.ndarray) -> np.ndarray:
 
-		preds = np.log(self.probs) - 0.5 * np.log(2*np.pi * self.std**2).sum() - 0.5 * (((rown - self.means) ** 2) / self.std**2).sum()
+		term1 = 0.5 * np.sum(
+			np.log(
+				2 * np.pi * self.std ** 2
+			)
+		)
+
+		term2 = 0.5 * np.sum(
+			((rown - self.means)**2) / (self.std**2)
+		)
+
+		preds = np.log(self.probs) - term1 - term2
 
 		return preds
 
