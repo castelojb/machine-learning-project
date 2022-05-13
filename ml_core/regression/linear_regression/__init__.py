@@ -2,6 +2,7 @@ from abc import abstractmethod
 import numpy as np
 
 from ml_core._abstract_models import MlModel, MlAlgoritm
+from ml_core.data_process import generate_polynomial_order
 
 
 class LinearModel(MlModel):
@@ -42,6 +43,7 @@ class LinearAlgoritm(MlAlgoritm):
 	with_history_predictions: bool
 	seed: int
 	l2_regulazation: float
+	degree_polynomial: int
 
 	def __init__(self,
 				 alpha=0.01,
@@ -50,8 +52,12 @@ class LinearAlgoritm(MlAlgoritm):
 				 l2_regulazation=0,
 				 with_history_predictions=False,
 				 seed=42,
-				 atol=0.00001):
+				 atol=0.00001,
+				 degree_polynomial=None,
+				 first_model: LinearModel = None):
 
+		self.first_model = first_model
+		self.degree_polynomial = degree_polynomial
 		self.atol = atol
 		self.l2_regulazation = l2_regulazation
 		self.seed = seed
@@ -68,20 +74,22 @@ class LinearAlgoritm(MlAlgoritm):
 	def _training_loop(self, x: np.ndarray, y: np.ndarray, model: LinearModel):
 		pass
 
-	def fit(self, x: np.ndarray, y: np.ndarray, first_model: LinearModel = None, **kwargs) -> LinearModel | list[
+	def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> LinearModel | list[
 		LinearModel]:
 
-		if not first_model:
-			first_model = LinearModel.first_model(
+		if not self.first_model:
+			self.first_model = LinearModel.first_model(
 				lenght=x.shape[1],
 				fill_value=self.initial_w_values
 			)
 
-		model_generator = self._training_loop(x, y, first_model)
+		if self.degree_polynomial: x = generate_polynomial_order(x, self.degree_polynomial)
+
+		model_generator = self._training_loop(x, y, self.first_model.__copy__())
 
 		if not self.with_history_predictions:
 
-			final_model = first_model.__copy__()
+			final_model = self.first_model.__copy__()
 
 			for model in model_generator: final_model = model
 

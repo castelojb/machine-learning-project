@@ -86,17 +86,10 @@ class LinearRegressionMulticlass(MlAlgoritm):
 		self.initial_w_values = initial_w_values
 		self.linear_alg = linear_alg
 
-	def fit(self, x: np.ndarray, y: np.ndarray, first_model: LogisticBinaryModel = None, **kwargs) -> MlModel | list[MlModel]:
-
-		if not first_model:
-			first_model = LogisticBinaryModel.first_model(
-				lenght=x.shape[1],
-				fill_value=self.initial_w_values
-			)
-
+	def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> MlModel | list[MlModel]:
 
 		binary_models = [
-			self.linear_alg.fit(x, y_class.reshape([-1, 1]), first_model=first_model.__copy__()) for y_class in tqdm(y)
+			self.linear_alg.fit(x, y_class.reshape([-1, 1])) for y_class in tqdm(y)
 		]
 
 		return LogisticMulticlassModel(binary_models)

@@ -54,29 +54,62 @@ class GridSearch:
 
 class Kfold:
 
-	def __init__(self, k: int, metrics: dict[str, Callable[[np.ndarray, np.ndarray], float]]):
+	def __init__(self, k: int, metrics: dict[str, Callable[[np.ndarray, np.ndarray], float]], verbose=False):
+		self.verbose = verbose
 		self.metrics = metrics
 		self.k = k
 
-	def __call__(self, ml_alg: MlAlgoritm, x: np.ndarray, y: np.ndarray):
+	def __call__(self,
+				 ml_alg: MlAlgoritm,
+				 x: np.ndarray,
+				 y: np.ndarray,
+				 y_1d: np.ndarray=None):
 
 		idx = np.arange(x.shape[0])
 
-		folds = np.split(idx, self.k)
+		folds = np.array_split(idx, self.k)
 
-		models = np.empty(self.k)
+		fold_results = np.empty(self.k, dtype=MlModel)
+
+		if y_1d is None:
+			y_1d = y
+
+		if y.shape[0] > y.shape[1]:
+			select_function = lambda arr, idx: arr[idx]
+		else:
+			select_function = lambda arr, idx: arr[:, idx]
 
 		for k, fold in enumerate(folds):
 
 			x_fold = x[fold]
-			y_fold = y[fold]
-			
-			x_rest = x[idx != fold]
-			y_rest = y[idx != fold]
+			y_fold = y_1d[fold]
+
+			not_in_fold = np.isin(idx, fold, invert=True)
+
+			x_rest = x[not_in_fold]
+			y_rest = select_function(y, not_in_fold)
 
 			model = ml_alg.fit(x_rest, y_rest)
 			preds = model.predict(x_fold)
 
-			models[k] = {key: function(y_fold, preds) for key, function in self.metrics.items()}
+			fold_results[k] = {key: fun_(y_fold, preds) for key, fun_ in self.metrics.items()}
 
-		return models
+			fold_results[k]['model'] = model.__copy__()
+
+		if self.verbose:
+
+			print('--------------REPORTANDO OS RESULTADOS OBTIDOS--------------')
+
+			for metric in self.metrics.keys():
+
+				all_metric_results = np.fromiter(
+					map(lambda result: result[metric], fold_results),
+					dtype=float
+				)
+
+				print(f'--------------{metric.upper()}--------------')
+				print(f'Média: {all_metric_results.mean()}')
+				print(f'Desvio Padrão: {all_metric_results.std()}')
+
+
+		return fold_results
