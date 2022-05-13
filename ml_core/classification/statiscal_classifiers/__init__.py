@@ -77,7 +77,6 @@ class MulticlassStatisticalModel(MlModel):
 		preds = np.array([
 			model.predict(x) for model in self.statiscal_models
 		])
-		return preds
 		return preds.argmax(axis=0).reshape([-1, 1])
 
 	def update(self, **kwargs):
@@ -104,13 +103,15 @@ class StatisticalClassifiers(MlAlgoritm):
 	@staticmethod
 	def __get_metrics_from_data(x: np.ndarray, y: np.ndarray, model: StatisticalModel) -> list[StatisticalModel]:
 
+		y_ = y.astype(bool)
+
 		models = [
 			model(
 				covs=np.cov(x[y_class].T),
 				means=x[y_class].mean(axis=0),
 				probs=x[y_class].shape[0] / x.shape[0],
 				std=x[y_class].std(axis=0)
-			) for y_class in y
+			) for y_class in y_
 		]
 
 		return models
