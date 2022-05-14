@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Type
 
 import numpy as np
 
@@ -93,11 +94,11 @@ class MulticlassStatisticalModel(MlModel):
 
 class StatisticalClassifiers(MlAlgoritm):
 
-	def __init__(self, model: StatisticalModel):
+	def __init__(self, model: Type[StatisticalModel]):
 		self.model = model
 
 	@staticmethod
-	def __get_metrics_from_data(x: np.ndarray, y: np.ndarray, model: StatisticalModel) -> list[StatisticalModel]:
+	def __get_metrics_from_data(x: np.ndarray, y: np.ndarray, model: Type[StatisticalModel]) -> list[StatisticalModel]:
 		y_ = y.astype(bool)
 
 		models = [
