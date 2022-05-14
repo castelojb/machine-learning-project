@@ -1,6 +1,4 @@
-from ml_core.classification.gaussian_discriminant import GaussianDiscriminant
 from ml_core.classification.logistic_regression import LogisticBinaryModel, LinearRegressionMulticlass
-from ml_core.classification.naive_bays import NaiveBayesGaussian
-from ml_core.classification.statiscal_classifiers import StatisticalClassifiers
-
-
+from ml_core.classification.statiscal_classifiers.base_class import StatisticalClassifiers
+from ml_core.classification.statiscal_classifiers.gaussian_discriminant import GaussianDiscriminant
+from ml_core.classification.statiscal_classifiers.naive_bays import NaiveBayesGaussian

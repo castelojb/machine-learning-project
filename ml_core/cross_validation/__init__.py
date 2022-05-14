@@ -4,6 +4,7 @@ import numpy as np
 
 from ml_core._abstract_models import MlAlgoritm, MlModel
 
+
 class GridSearch:
 
 	def __init__(self,
@@ -43,7 +44,6 @@ class GridSearch:
 			result = self.otimization_metric(y_tst, preds)
 
 			if result > grid_max_result['result']:
-
 				grid_max_result = {
 					'result': result,
 					'model': model,
@@ -51,6 +51,7 @@ class GridSearch:
 				}
 
 		return grid_max_result
+
 
 class Kfold:
 
@@ -63,7 +64,7 @@ class Kfold:
 				 ml_alg: MlAlgoritm,
 				 x: np.ndarray,
 				 y: np.ndarray,
-				 y_1d: np.ndarray=None):
+				 y_1d: np.ndarray = None):
 
 		idx = np.arange(x.shape[0])
 
@@ -80,7 +81,6 @@ class Kfold:
 			select_function = lambda arr, idx: arr[:, idx]
 
 		for k, fold in enumerate(folds):
-
 			x_fold = x[fold]
 			y_fold = y_1d[fold]
 
@@ -101,7 +101,6 @@ class Kfold:
 			print('--------------REPORTANDO OS RESULTADOS OBTIDOS--------------')
 
 			for metric in self.metrics.keys():
-
 				all_metric_results = np.fromiter(
 					map(lambda result: result[metric], fold_results),
 					dtype=float
@@ -110,6 +109,5 @@ class Kfold:
 				print(f'--------------{metric.upper()}--------------')
 				print(f'Média: {all_metric_results.mean()}')
 				print(f'Desvio Padrão: {all_metric_results.std()}')
-
 
 		return fold_results

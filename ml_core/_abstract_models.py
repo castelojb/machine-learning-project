@@ -2,6 +2,7 @@ from abc import abstractmethod
 
 import numpy as np
 
+
 class MlModel:
 
 	@abstractmethod

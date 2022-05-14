@@ -1,45 +1,47 @@
 import numpy as np
 
-def rmse(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
-    diff = (real_arr - predicted_arr) ** 2
 
-    return np.sqrt(diff.mean())
+def rmse(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
+	diff = (real_arr - predicted_arr) ** 2
+
+	return np.sqrt(diff.mean())
+
 
 def acuracy(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
+	return (real_arr[:, 0] == predicted_arr[:, 0]).sum() / real_arr.shape[0]
 
-    return  (real_arr[:, 0] == predicted_arr[:, 0]).sum() / real_arr.shape[0]
 
 def precision(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
-    
-    real = real_arr.astype(bool)
-    preds = predicted_arr.astype(bool)
-    
-    positives = real == 1
+	real = real_arr.astype(bool)
+	preds = predicted_arr.astype(bool)
 
-    negatives = ~positives
+	positives = real == 1
 
-    true_positives = preds[positives].sum()
+	negatives = ~positives
 
-    true_negatives = (~preds[negatives]).sum()
+	true_positives = preds[positives].sum()
 
-    return true_positives / (true_positives + true_negatives)
+	true_negatives = (~preds[negatives]).sum()
+
+	return true_positives / (true_positives + true_negatives)
+
 
 def recall(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
-    real = real_arr.astype(bool)
-    preds = predicted_arr.astype(bool)
-    
-    positives = real == True
+	real = real_arr.astype(bool)
+	preds = predicted_arr.astype(bool)
 
-    true_positives = preds[positives].sum()
+	positives = real == True
 
-    false_positives = (~preds[positives]).sum()
+	true_positives = preds[positives].sum()
 
-    return true_positives / (true_positives + false_positives)
+	false_positives = (~preds[positives]).sum()
+
+	return true_positives / (true_positives + false_positives)
+
 
 def f1_score(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
+	recall_ = recall(real_arr, predicted_arr)
 
-    recall_ = recall(real_arr, predicted_arr)
+	precision_ = precision(real_arr, predicted_arr)
 
-    precision_ = precision(real_arr, predicted_arr)
-
-    return 2 * (recall_ * precision_) / (recall_ + precision_)
+	return 2 * (recall_ * precision_) / (recall_ + precision_)
