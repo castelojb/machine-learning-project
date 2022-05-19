@@ -8,10 +8,8 @@ from ml_core._abstract_models import MlModel, MlAlgoritm
 
 class NonParametricModel(MlModel):
 	name: str
-	x: np.ndarray
-	y: np.ndarray
 
-	def set_data(self, x: np.ndarray, y: np.ndarray):
+	def __init__(self, x: np.ndarray, y: np.ndarray, **kwargs):
 		self.x = x
 		self.y = y
 
@@ -41,12 +39,10 @@ class NonParametricModel(MlModel):
 
 class NonParametricAlg(MlAlgoritm):
 
-	def __init__(self, model: NonParametricModel):
+	def __init__(self, model: Type[NonParametricModel], **kwargs):
 		self.model = model
+		self.kwargs = kwargs
 
 	def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> MlModel:
-		final_model = self.model.set_data(
-			x, y
-		)
 
-		return final_model
+		return self.model(x, y, **self.kwargs)
