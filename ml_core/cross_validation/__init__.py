@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Callable
+from typing import Callable, Iterable
 
 import numpy as np
 
@@ -61,17 +61,14 @@ class Kfold:
 		self.metrics = metrics
 		self.k = k
 
-	def __call__(self,
-				 ml_alg: MlAlgoritm,
-				 x: np.ndarray,
-				 y: np.ndarray,
-				 y_1d: np.ndarray = None):
+	def generate_folds(self,
+					   x: np.ndarray,
+					   y: np.ndarray,
+					   y_1d: np.ndarray = None) -> Iterable[dict[str, np.ndarray]]:
 
 		idx = np.arange(x.shape[0])
 
 		folds = np.array_split(idx, self.k)
-
-		fold_results = np.empty(self.k, dtype=MlModel)
 
 		if y_1d is None:
 			y_1d = y
@@ -90,12 +87,43 @@ class Kfold:
 			x_rest = x[not_in_fold]
 			y_rest = select_function(y, not_in_fold)
 
-			model = ml_alg.fit(x_rest, y_rest)
-			preds = model.predict(x_fold)
+			yield {
+				'x_trn': x_rest.copy(),
+				'y_trn': y_rest.copy(),
+				'x_tst': x_fold.copy(),
+				'y_tst': y_fold.copy()
+			}
 
-			fold_results[k] = {key: fun_(y_fold, preds) for key, fun_ in self.metrics.items()}
+	@staticmethod
+	def apply_alg_in_payload(ml_alg: MlAlgoritm, data: dict[str, np.ndarray]) -> MlModel:
 
-			fold_results[k]['model'] = copy(model)
+		model = ml_alg.fit(
+			data['x_trn'],
+			data['y_trn']
+		)
+
+		return model
+
+	def __call__(self,
+				 ml_alg: MlAlgoritm,
+				 x: np.ndarray,
+				 y: np.ndarray,
+				 y_1d: np.ndarray = None,
+				 apply_alg_function: Callable[[MlAlgoritm, dict[str, np.ndarray]], MlModel] = apply_alg_in_payload,
+				 **kwargs):
+
+		payload_data = self.generate_folds(x, y, y_1d=y_1d)
+
+		fold_results = np.empty(self.k, dtype=dict)
+
+		for k, data in enumerate(payload_data):
+			model = apply_alg_function(ml_alg, data)
+
+			preds = model.predict(
+				data['x_tst']
+			)
+
+			fold_results[k] = {key: fun_(data['y_tst'], preds) for key, fun_ in self.metrics.items()}
 
 		if self.verbose:
 
