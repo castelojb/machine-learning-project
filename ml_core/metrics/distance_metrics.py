@@ -7,13 +7,13 @@ def euclidian(origim: np.ndarray, dest: np.ndarray) -> float:
 	)
 
 
-def mahalanobis(origim: np.ndarray, dest: np.ndarray) -> float:
-	arr = np.c_[origim, dest]
+class Mahalanobis:
 
-	cov = np.cov(arr)
+	def __init__(self, cov_matrix: np.ndarray):
+		self.inv_cov = np.linalg.pinv(cov_matrix)
 
-	inv_cov = np.linalg.pinv(cov)
+	def __call__(self, origim: np.ndarray, dest: np.ndarray) -> float:
 
-	return np.sqrt(
-		(origim - dest).T @ inv_cov @ (origim - dest)
-	)
+		return np.sqrt(
+			(origim - dest).T @ self.inv_cov @ (origim - dest)
+		)

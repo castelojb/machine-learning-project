@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Callable
 
 import numpy as np
@@ -94,7 +95,7 @@ class Kfold:
 
 			fold_results[k] = {key: fun_(y_fold, preds) for key, fun_ in self.metrics.items()}
 
-			fold_results[k]['model'] = model.__copy__()
+			fold_results[k]['model'] = copy(model)
 
 		if self.verbose:
 
