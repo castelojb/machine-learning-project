@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from typing import Type
 
 import numpy as np
-
+import copy
 from ml_core._abstract_models import MlModel, MlAlgoritm
 from ml_core.data_process import add_ones_column
 from ml_core.neural_networks.activate_functions import Relu
@@ -21,15 +21,14 @@ class Network(MlModel):
 		self.layers = layers
 
 	@staticmethod
-	def first_model(
+	def _first_model(
 			n_layers: int,
 			n_neurons: int,
 			n_features: int,
 			momentum: float,
 			layer_type: Type[Layer],
 			bias=0,
-			activation_function=Relu,
-			**kwargs) -> 'Network':
+			activation_function=Relu) -> np.ndarray:
 
 		layers = np.empty(n_layers, dtype=Layer)
 		layers[0] = layer_type.first_model(
@@ -39,7 +38,7 @@ class Network(MlModel):
 			bias=bias,
 			activation_function=activation_function,
 		)
-		for idx in range(1, n_layers):
+		for idx in range(1, n_layers-1):
 			layers[idx] = layer_type.first_model(
 				n_neurons,
 				n_neurons - 1,
@@ -48,9 +47,7 @@ class Network(MlModel):
 				activation_function=activation_function,
 			)
 
-		return Network(
-			layers
-		)
+		return layers
 
 	def update_output_layer_w(self, input: np.ndarray, output: np.ndarray, y_true: np.ndarray, alpha: float,
 							  regularization=1):
@@ -91,12 +88,89 @@ class Network(MlModel):
 
 class RegressionNetwork(Network):
 
+	def __copy__(self):
+		return RegressionNetwork(
+			copy.deepcopy(self.layers)
+		)
+
+	@staticmethod
+	def first_model(
+			n_layers: int,
+			n_neurons: int,
+			n_features: int,
+			momentum: float,
+			layer_type: Type[Layer],
+			bias=0,
+			activation_function=Relu,
+			**kwargs) -> 'MlModel':
+
+		layers = Network._first_model(
+			n_layers,
+			n_neurons,
+			n_features,
+			momentum,
+			layer_type,
+			bias=bias,
+			activation_function=activation_function
+		)
+
+		layers[-1] = layer_type.first_model(
+					1,
+					n_neurons - 1,
+					momentum,
+					bias=bias,
+					activation_function=activation_function,
+			)
+
+		return RegressionNetwork(
+			layers
+		)
+
 	def predict(self, x: np.ndarray) -> np.ndarray:
 		preds = self._predict(x)
-		return preds.reshape(1, -1)[0].reshape([-1, 1])
+		return preds.reshape(1, -1)[0]
 
 
 class ClassificationNetwork(Network):
+
+	def __copy__(self):
+		return ClassificationNetwork(
+			self.layers.copy()
+		)
+
+	@staticmethod
+	def first_model(
+			n_layers: int,
+			n_neurons: int,
+			n_features: int,
+			n_class: int,
+			momentum: float,
+			layer_type: Type[Layer],
+			bias=0,
+			activation_function=Relu,
+			**kwargs) -> 'MlModel':
+
+		layers = Network._first_model(
+			n_layers,
+			n_neurons,
+			n_features,
+			momentum,
+			layer_type,
+			bias=bias,
+			activation_function=activation_function
+		)
+
+		layers[-1] = layer_type.first_model(
+					n_class,
+					n_neurons - 1,
+					momentum,
+					bias=bias,
+					activation_function=activation_function,
+			)
+
+		return ClassificationNetwork(
+			layers
+		)
 
 	def predict(self, x: np.ndarray) -> np.ndarray:
 		preds = self._predict(x)
@@ -105,7 +179,17 @@ class ClassificationNetwork(Network):
 
 class NetworkTrainer(MlAlgoritm):
 
-	def __init__(self, first_model: Network = None, ephocs=100, batch_size=0.4, alpha=0.01, regularization=1, seed=42):
+	def __init__(
+			self,
+			first_model: Network = None,
+			ephocs=100,
+			batch_size=40,
+			alpha=0.01,
+			regularization=1,
+			seed=42,
+			with_history=False):
+
+		self.with_history = with_history
 		self.seed = seed
 		self.regularization = regularization
 		self.alpha = alpha
@@ -149,19 +233,19 @@ class NetworkTrainer(MlAlgoritm):
 
 		return theta
 
-	def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> MlModel | list[MlModel]:
-
-		model = self.first_model.__copy__()
+	def _loop_training(self, x: np.ndarray, y: np.ndarray, model: Network) -> list[Network]:
 
 		data_idx = np.arange(x.shape[0])
+		# np.random.seed(self.seed)
 
-		np.random.seed(self.seed)
+		batch_idx = np.random.choice(data_idx, [self.ephocs, self.batch_size])
+
 		for ephoc in range(self.ephocs):
-			np.random.shuffle(data_idx)
-			batch_idx = data_idx[:round(x.shape[0] * self.batch_size)]
 
-			x_batch = x[batch_idx, :]
-			y_batch = y[batch_idx, :]
+			idx = batch_idx[ephoc]
+
+			x_batch = x[idx, :]
+			y_batch = y[idx, :]
 
 			before_activate, after_activate = self._forward(x_batch, model)
 
@@ -179,5 +263,22 @@ class NetworkTrainer(MlAlgoritm):
 				after_activate,
 				theta_forward
 			)
+			print(f'------------------{ephoc}------------------')
+			print(model)
+			yield model.__copy__()
 
-		return model.__copy__()
+	def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> MlModel | list[MlModel]:
+
+		model = self.first_model.__copy__()
+
+		model_generator = self._loop_training(x, y, model.__copy__())
+
+		if self.with_history:
+			return list(model_generator)
+
+		final_model = model.__copy__()
+
+		for model in model_generator:
+			final_model = model
+
+		return final_model.__copy__()

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Callable
 
 import numpy as np
 
@@ -39,9 +39,23 @@ def categorize_data(y: np.ndarray) -> tuple[Dict[str, int], np.ndarray]:
 	return convert_values, y_
 
 
-def get_dummies(y: np.ndarray) -> np.ndarray:
+def normalize_data(x: np.ndarray, normalize_function: Callable[[np.ndarray], np.ndarray]) -> np.ndarray:
+	x_norm = np.empty_like(x)
+
+	for idx, col in enumerate(x.T):
+		norm = normalize_function(col)
+		x_norm[:, idx] = norm
+
+	return x_norm
+
+
+def get_dummies(y: np.ndarray, with_data_orientation=False) -> np.ndarray:
 	unique_values = np.unique(y)
 
-	return np.array([
+	encode = np.array([
 		(y == value) for value in unique_values
 	], dtype=int)
+
+	one_hot_encode = encode.reshape([y.shape[0], unique_values.shape[0]]) if with_data_orientation else encode
+
+	return one_hot_encode
