@@ -182,12 +182,14 @@ class NetworkTrainer(MlAlgoritm):
 	def __init__(
 			self,
 			first_model: Network = None,
+			construct_model: Type[Network] = None,
 			ephocs=100,
 			batch_size=40,
 			alpha=0.01,
 			regularization=1,
-			seed=42,
-			with_history=False):
+			seed=123,
+			with_history=False,
+			**kwargs):
 
 		self.with_history = with_history
 		self.seed = seed
@@ -195,7 +197,11 @@ class NetworkTrainer(MlAlgoritm):
 		self.alpha = alpha
 		self.batch_size = batch_size
 		self.ephocs = ephocs
-		self.first_model = first_model
+
+		if first_model:
+			self.first_model = first_model
+		else:
+			self.first_model = construct_model.first_model(**kwargs)
 
 	@staticmethod
 	def _forward(x_batch: np.ndarray, model: Network) -> tuple[list[np.ndarray], list[np.ndarray]]:
@@ -236,7 +242,7 @@ class NetworkTrainer(MlAlgoritm):
 	def _loop_training(self, x: np.ndarray, y: np.ndarray, model: Network) -> list[Network]:
 
 		data_idx = np.arange(x.shape[0])
-		# np.random.seed(self.seed)
+		np.random.seed(self.seed)
 
 		batch_idx = np.random.choice(data_idx, [self.ephocs, self.batch_size])
 
@@ -263,8 +269,8 @@ class NetworkTrainer(MlAlgoritm):
 				after_activate,
 				theta_forward
 			)
-			print(f'------------------{ephoc}------------------')
-			print(model)
+			# print(f'------------------{ephoc}------------------')
+			# print(model)
 			yield model.__copy__()
 
 	def fit(self, x: np.ndarray, y: np.ndarray, **kwargs) -> MlModel | list[MlModel]:
