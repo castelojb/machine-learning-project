@@ -7,6 +7,18 @@ def rmse(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
 	return np.sqrt(diff.mean())
 
 
+def mae(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
+	diff = np.abs(real_arr - predicted_arr)
+
+	return diff.mean()
+
+
+def mre(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
+	diff = (real_arr - predicted_arr) / real_arr
+
+	return np.abs(diff).mean()
+
+
 def acuracy(real_arr: np.ndarray, predicted_arr: np.ndarray) -> float:
 	return (real_arr[:, 0] == predicted_arr[:, 0]).sum() / real_arr.shape[0]
 

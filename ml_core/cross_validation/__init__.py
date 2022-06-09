@@ -1,15 +1,18 @@
 from copy import copy
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Type
 
 import numpy as np
+from tqdm.notebook import tqdm
 
 from ml_core._abstract_models import MlAlgoritm, MlModel
+import itertools
+from joblib import Parallel, delayed
 
 
 class GridSearch:
 
 	def __init__(self,
-				 ml_alg: MlAlgoritm,
+				 ml_alg: Type[MlAlgoritm],
 				 otimization_metric: Callable[[np.ndarray, np.ndarray], float],
 				 search_values: dict[str, list[float]]):
 
@@ -17,41 +20,50 @@ class GridSearch:
 		self.otimization_metric = otimization_metric
 		self.ml_alg = ml_alg
 
+	def _execute_alg_by_parameters(
+			self,
+			x_trn: np.ndarray,
+			y_trn: np.ndarray,
+			x_tst: np.ndarray,
+			y_tst: np.ndarray,
+			parameters: dict):
+
+		alg_with_paramns = self.ml_alg(**parameters)
+
+		model = alg_with_paramns.fit(x_trn, y_trn)
+
+		preds = model.predict(x_tst)
+
+		result = self.otimization_metric(y_tst, preds)
+
+		return {
+			'result': result,
+			'model': model,
+			'paramns': parameters
+		}
+
 	def __call__(self,
 				 x_trn: np.ndarray,
 				 y_trn: np.ndarray,
 				 x_tst: np.ndarray,
-				 y_tst: np.ndarray) -> dict[str, float | MlModel | dict[str, float]]:
+				 y_tst: np.ndarray, n_jobs=-1) -> dict[str, float | MlModel | dict[str, float]]:
 
 		options = self.search_values.values()
 		paramns = self.search_values.keys()
 
-		grid_values = np.array(np.meshgrid(options)).T.reshape([-1, len(options)])
+		grid_values = [element for element in itertools.product(*options)]
 
 		grid_formated = map(lambda rown: {key: value for key, value in zip(paramns, rown)}, grid_values)
 
-		grid_max_result = {
-			'result': 0,
-			'model': None,
-			'paramns': None
-		}
-		for param_combination in grid_formated:
-			alg_with_paramns = self.ml_alg(**param_combination)
+		results = Parallel(n_jobs=n_jobs)(delayed(self._execute_alg_by_parameters)(
+			x_trn,
+			y_trn,
+			x_tst,
+			y_tst,
+			param_combination
+		) for param_combination in tqdm(grid_formated))
 
-			model = alg_with_paramns.fit(x_trn, y_trn)
-
-			preds = model.predict(x_tst)
-
-			result = self.otimization_metric(y_tst, preds)
-
-			if result > grid_max_result['result']:
-				grid_max_result = {
-					'result': result,
-					'model': model,
-					'paramns': param_combination
-				}
-
-		return grid_max_result
+		return max(results, key=lambda x: x['result'])
 
 
 class Kfold:
