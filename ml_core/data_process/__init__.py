@@ -50,12 +50,13 @@ def normalize_data(x: np.ndarray, normalize_function: Callable[[np.ndarray], np.
 
 
 def get_dummies(y: np.ndarray, with_data_orientation=False) -> np.ndarray:
+
 	unique_values = np.unique(y)
 
 	encode = np.array([
 		(y == value) for value in unique_values
 	], dtype=int)
 
-	one_hot_encode = encode.reshape([y.shape[0], unique_values.shape[0]]) if with_data_orientation else encode
+	one_hot_encode = encode.reshape([y.shape[0], -1]) if with_data_orientation else encode
 
 	return one_hot_encode

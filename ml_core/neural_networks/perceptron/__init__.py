@@ -24,10 +24,10 @@ class PerceptronLayer(Layer):
 			momentum: float,
 			bias=0.2,
 			activation_function=Relu,
-			seed=42,
+			seed=123,
 			**kwargs) -> 'PerceptronLayer':
 
-		# np.random.seed(seed)
+		np.random.seed(seed)
 		w = np.sqrt(2 / n_neurons) * np.random.normal(0, 1, (n_neurons, n_features))
 
 		neurons = np.c_[np.zeros(n_neurons) + bias, w]

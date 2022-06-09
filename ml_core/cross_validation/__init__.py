@@ -46,7 +46,7 @@ class GridSearch:
 				 x_trn: np.ndarray,
 				 y_trn: np.ndarray,
 				 x_tst: np.ndarray,
-				 y_tst: np.ndarray) -> dict[str, float | MlModel | dict[str, float]]:
+				 y_tst: np.ndarray, n_jobs=-1) -> dict[str, float | MlModel | dict[str, float]]:
 
 		options = self.search_values.values()
 		paramns = self.search_values.keys()
@@ -55,7 +55,7 @@ class GridSearch:
 
 		grid_formated = map(lambda rown: {key: value for key, value in zip(paramns, rown)}, grid_values)
 
-		results = Parallel(n_jobs=-1)(delayed(self._execute_alg_by_parameters)(
+		results = Parallel(n_jobs=n_jobs)(delayed(self._execute_alg_by_parameters)(
 			x_trn,
 			y_trn,
 			x_tst,

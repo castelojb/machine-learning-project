@@ -5,7 +5,7 @@ import numpy as np
 import copy
 from ml_core._abstract_models import MlModel, MlAlgoritm
 from ml_core.data_process import add_ones_column
-from ml_core.neural_networks.activate_functions import Relu
+from ml_core.neural_networks.activate_functions import Relu, Softmax
 
 
 class Layer(MlModel, ABC):
@@ -135,7 +135,7 @@ class ClassificationNetwork(Network):
 
 	def __copy__(self):
 		return ClassificationNetwork(
-			self.layers.copy()
+			copy.deepcopy(self.layers)
 		)
 
 	@staticmethod
@@ -148,6 +148,7 @@ class ClassificationNetwork(Network):
 			layer_type: Type[Layer],
 			bias=0,
 			activation_function=Relu,
+			output_activation_function=Softmax,
 			**kwargs) -> 'MlModel':
 
 		layers = Network._first_model(
@@ -165,7 +166,7 @@ class ClassificationNetwork(Network):
 					n_neurons - 1,
 					momentum,
 					bias=bias,
-					activation_function=activation_function,
+					activation_function=output_activation_function,
 			)
 
 		return ClassificationNetwork(
